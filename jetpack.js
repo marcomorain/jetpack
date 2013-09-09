@@ -1,25 +1,46 @@
 $(function(){
   "use strict";
 
-
   var key_state = {};
-
-  $(document).keyup(function(e) {
-    key_state[e.which] = false;
-  });
-
-  $(document).keydown(function(e) {
-    key_state[e.which] = true;
-  });
-
-  var clamp = function(v, min, max) {
-    return Math.min(max, Math.max(v, min));
-  }
 
   var key_accel = 87;
   var key_break = 83;
   var key_left  = 65;
   var key_right = 68;
+  var key_up    = 38;
+  var key_dn    = 40;
+  var key_lt    = 37;
+  var key_rt    = 39;
+
+  var controls = {
+    key_accel: true,
+    key_break: true,
+    key_left:  true,
+    key_right: true,
+    key_up:    true,
+    key_dn:    true,
+    key_lt:    true,
+    key_rt:    true,
+  };
+
+  $(document).keyup(function(e) {
+    key_state[e.which] = false;
+
+    // Prevent default behaviour for keys that
+    // we care about
+    controls[e.which] && e.preventDefault();
+  });
+
+  $(document).keydown(function(e) {
+    key_state[e.which] = true;
+    // Prevent default behaviour for keys that
+    // we care about
+    controls[e.which] && e.preventDefault();
+  });
+
+  var clamp = function(v, min, max) {
+    return Math.min(max, Math.max(v, min));
+  }
 
   var car_sprite = new Image();
   car_sprite.src = 'car.png';
@@ -42,25 +63,25 @@ $(function(){
 
   Car.prototype.update = function(dt) {
 
-    if (key_state[key_accel]){
+    if (key_state[key_accel] || key_state[key_up]){
       this.v += this.accel;
     }
 
-    if (key_state[key_break]){
+    if (key_state[key_break] || key_state[key_dn]){
       this.v -= this.brk;
     }
 
-    if (key_state[key_left]){
+    if (key_state[key_left] || key_state[key_lt]){
       this.d -= this.steer;
     }
 
-    if (key_state[key_right]){
+    if (key_state[key_right] || key_state[key_rt]){
       this.d += this.steer;
     }
 
     this.v = clamp(this.v, 0, this.max_v);
-    this.x = clamp(this.x, 0, track.width);
-    this.y = clamp(this.y, 0, track.height);
+    this.x = clamp(this.x, 32, track.width  - 32);
+    this.y = clamp(this.y, 32, track.height - 32);
     this.d = this.d % (2 * Math.PI);
 
     var velocity = this.v * dt;
@@ -104,7 +125,7 @@ $(function(){
   var last_render = new Date().getTime();
 
   $(canvas).click(function() {
-    screenfull.enabled && screenfull.request(this);
+    //screenfull.enabled && screenfull.request(this);
   });
 
   track = new Track(canvas.width, canvas.height)
